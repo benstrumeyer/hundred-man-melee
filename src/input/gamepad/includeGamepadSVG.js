@@ -122,3 +122,5 @@ function includeGamepadSVG(id, x, y, isCalibration) {
   doc.write(svgData);
   doc.close();
 };
+
+export default includeGamepadSVG;

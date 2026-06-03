@@ -36,7 +36,7 @@ import {isShowSFX, toggleShowSFX} from "main/vfx";
 import {renderVfx} from "./vfx/renderVfx";
 import {Box2D} from "./util/Box2D";
 import {Vec2D} from "./util/Vec2D";
-import {updateNetworkInputs, connectToMPRoom, retrieveNetworkInputs, giveInputs,connectToMPServer, syncGameMode} from "./multiplayer/streamclient";
+import {updateNetworkInputs, retrieveNetworkInputs, giveInputs, connectToMPServer, syncGameMode} from "./multiplayer/streamclient";
 import {saveGameState, loadReplay, gameTickDelay} from "./replay";
 import {keyboardMap, showButton, nullInputs, pollInputs, inputData, setCustomCenters, nullInput} from "../input/input";
 import {deaden} from "../input/meleeInputs";

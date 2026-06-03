@@ -1,4 +1,5 @@
 /* eslint-disable */
+import { Howl } from "howler";
 
 import {MusicManager} from "./music";
 

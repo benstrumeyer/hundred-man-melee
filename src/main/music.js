@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import { Howl } from "howler";
 
 export class MusicManager {
 

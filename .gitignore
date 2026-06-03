@@ -53,6 +53,7 @@ yarn-error.log*
 
 # Built files
 dist/js
+build
 .tmp
 .happypack
 MeleeLight-darwin-x64/*
