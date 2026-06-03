@@ -10,7 +10,6 @@ import {
   , setPlaying
 
   , setEndTargetGame
-  , setStage
   , holiday
 } from "main/main";
 import {renderPlayer} from "main/render";

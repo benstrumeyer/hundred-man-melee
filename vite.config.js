@@ -44,6 +44,9 @@ function srcRootResolver() {
 }
 
 export default defineConfig({
+  // deepstream.io-client-js (legacy multiplayer dep) references Node's `global`,
+  // which doesn't exist in the browser. Map it to globalThis so the dep evaluates.
+  define: { global: "globalThis" },
   // Serve dist/ contents at the site root (/meleelight.css, /gamepad.css,
   // /assets/*, /music/*, /sfx/*). The root index.html lives at repo root,
   // NOT inside dist/, so it does not overlap publicDir.
@@ -56,7 +59,10 @@ export default defineConfig({
     // plugin is required for `vite dev` to handle require()/module.exports under src/.
     // Honors resolve.extensions [".js"], so the .js-less requires
     // (require("./THROWNFALCONBACK"), require("./CAPTUREDAMAGE")) resolve fine.
-    viteCommonjs({ include: ["src/animations/**"] }),
+    // @originjs filter is a literal substring match (what.indexOf(include)>=0),
+    // NOT a glob — so "src/animations" matches both src/animations.js and every
+    // src/animations/<char>/*.js path. (No globs/regex; the plugin .split()s each entry.)
+    viteCommonjs({ include: ["src/animations"] }),
     // Strip Flow type annotations (present in src/input/gamepad/* and others).
     babel({
       filter: /[\\/]src[\\/].*\.jsx?$/,

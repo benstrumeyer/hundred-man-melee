@@ -25,7 +25,6 @@ import hitSparks from "main/vfx/dVfx/hitSparks";
 import furaFura from "main/vfx/dVfx/furaFura";
 import illusion from "main/vfx/dVfx/illusion";
 import impactLand from "main/vfx/dVfx/impactLand";
-import index from "main/vfx/dVfx/index";
 import laser from "main/vfx/dVfx/laser";
 import laserSpark from "main/vfx/dVfx/laserSpark";
 import normalhit from "main/vfx/dVfx/normalhit";
@@ -75,7 +74,6 @@ export default {
   hitSparks,
   illusion,
   impactLand,
-  index,
   laser,
   laserSpark,
   normalhit,
