@@ -48,6 +48,8 @@ import {deepObjectMerge} from "./util/deepCopyObject";
 import {buildMatchConfig, defaultRoster} from "./hundredManSetup";
 import {resolveFFA} from "./ffaRules";
 import {computeCamera, smoothCamera} from "./camera";
+import {candidatePairs} from "./spatialHash";
+import {drawPerfHud} from "./perfHud";
 import {setTokenPosSnapToChar} from "../menus/css";
 /*globals performance*/
 
@@ -932,6 +934,15 @@ export function renderToMain (){
   }
 }
 
+// AI throttle: at high fighter counts, re-running the CPU decision tree for
+// every fighter every tick dominates the sim budget. The cached aiInputBank
+// input persists between recomputes, so staggering runAI by fighter index keeps
+// the swarm reactive while cutting AI cost by ~AI_THROTTLE x. Disabled (every
+// frame) below the threshold so normal 4-player matches are byte-for-byte intact.
+const AI_THROTTLE = 3;
+const AI_THROTTLE_MIN_FIGHTERS = 16;
+let simTick = 0;
+
 export function update (i,inputBuffers){
   if (!starting){
     if (currentPlayers[i] != -1){
@@ -940,7 +951,9 @@ export function update (i,inputBuffers){
       }
       else if (playerType[i] === 1) {
         if (player[i].actionState != "SLEEP"){
+          if (ports < AI_THROTTLE_MIN_FIGHTERS || (simTick + i) % AI_THROTTLE === 0) {
             runAI(i); // no need to return input since polling returns ai input if they are active
+          }
         }
       }
     }
@@ -1095,6 +1108,8 @@ export function gameTick (oldInputBuffers){
     //console.log(now);
     //console.log(dt);
     lastUpdate = now;
+    var simStart = performance.now();
+    simTick++;
 
       resetHitQueue();
     getActiveStage().movingPlatforms();
@@ -1110,9 +1125,23 @@ export function gameTick (oldInputBuffers){
       }
     }
     checkPhantoms();
+    // Broad-phase hit detection: bucket fighters by world position and only
+    // test attacker/victim pairs that share or border a grid cell, instead of
+    // every-fighter-vs-every-fighter. CELL ~= widest hitbox reach in world units.
+    const CELL = 30;
+    const points = [];
+    for (var i = 0; i < ports; i++) points.push(player[i].phys.pos);
+    const hitVictims = [];
+    for (var i = 0; i < ports; i++) hitVictims.push([]);
+    for (const [a, b] of candidatePairs(points, CELL)) {
+      // hitDetect is directional (attacker's active hitboxes vs victim), so each
+      // unordered pair contributes a victim to both fighters' candidate lists.
+      hitVictims[a].push(b);
+      hitVictims[b].push(a);
+    }
     for (var i = 0; i < ports; i++) {
-      if (playerType[i] > -1) {
-        hitDetect(i,input);
+      if (playerType[i] > -1 && hitVictims[i].length > 0) {
+        hitDetect(i,input,hitVictims[i]);
       }
     }
     executeHits(input);
@@ -1150,6 +1179,8 @@ export function gameTick (oldInputBuffers){
         window.__cam = smoothCamera(window.__cam || target, target, 0.15);
       }
     }
+    // Sim-ms-per-tick for the perf HUD (Phase-2 server-feasibility budget ~16ms).
+    window.__simMs = performance.now() - simStart;
     if (frameByFrame) {
       frameByFrameRender = true;
       wasFrameByFrame = true;
@@ -1318,6 +1349,12 @@ export function renderTick (){
       renderArticles();
       renderVfx();
       renderOverlay(true);
+
+      if (hundredManMode) {
+        let aliveCount = 0;
+        for (var i = 0; i < ports; i++) if (!player[i].dead) aliveCount++;
+        drawPerfHud(ui, window.__simMs || 0, aliveCount, performance.now());
+      }
 
       if (showDebug) {
         var diff = performance.now() - rStart;

@@ -21,9 +21,13 @@ export function setPhantonQueue(val){
 }
 const angleConversion = Math.PI / 180;
 
-export function hitDetect (p,input){
+export function hitDetect (p,input,victims){
     var attackerClank = false;
-    for (var i = 0; i < 4; i++) {
+    // When `victims` is provided (broad-phase candidate list), only test those
+    // fighters; otherwise fall back to the legacy all-vs-all 4-player scan.
+    var list = victims || [0, 1, 2, 3];
+    for (var vi = 0; vi < list.length; vi++) {
+        var i = list[vi];
         if (playerType[i] > -1) {
             if (i != p) {
                 // check if victim is already in hitList
