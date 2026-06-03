@@ -7,6 +7,7 @@ import {
   playerType,
   edgeOffset,
   versusMode,
+  hundredManMode,
   showDebug,
   gameMode
 } from "../main/main";
@@ -985,7 +986,7 @@ function dealWithDeath(i: number, input: any): void {
       player[i].stocks--;
       player[i].colourOverlayBool = false;
       lostStockQueue.push([i, player[i].stocks, 0]);
-      if (player[i].stocks === 0 && versusMode) {
+      if (player[i].stocks === 0 && versusMode && !hundredManMode) {
         player[i].stocks = 1;
       }
       actionStates[characterSelections[i]][state].init(i, input);

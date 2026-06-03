@@ -46,6 +46,8 @@ import {buttonState} from "../input/gamepad/retrieveGamepadInputs";
 import {updateGamepadSVGState, updateGamepadSVGColour, setGamepadSVGColour, cycleGamepadColour} from "../input/gamepad/drawGamepad";
 import {deepObjectMerge} from "./util/deepCopyObject";
 import {buildMatchConfig, defaultRoster} from "./hundredManSetup";
+import {resolveFFA} from "./ffaRules";
+import {computeCamera, smoothCamera} from "./camera";
 import {setTokenPosSnapToChar} from "../menus/css";
 /*globals performance*/
 
@@ -139,6 +141,14 @@ export let gameMode = 20;
 // 0:Title Screen
 export let versusMode = 0;
 
+// True only during a 100-man FFA match. Disables the versus-mode stock
+// re-inflation (so stocks deplete to 0 and fighters stay eliminated) and
+// enables the dynamic camera + FFA last-man-standing end condition.
+export let hundredManMode = false;
+export function setHundredManMode (val){
+  hundredManMode = val;
+}
+
 export const randomTags = ["NEO!","SELF","NOVA","PNDA","Panda","LFFN","Scorp","AZ","AXE","Tempo","TMPO","[A]rmada","WBALLZ","Westballz","PPMD","Kreygasm","M2K","Mang0","USA","SCAR","TOPH","(.Y.)","HBOX","HungryBox","PLUP","Shroomed","SFAT","Wizz","Lucky","S2J","SilentWolf","aMSa","S2J","Hax$"];
 
 export const palettes = [["rgb(250, 89, 89)","rgb(255, 170, 170)","rgba(255, 206, 111, ","rgb(244, 68, 68)","rgba(255, 225, 167, "],
@@ -216,6 +226,8 @@ export function applyMatchConfig (cfg){
 export function startHundredManMatch (count = 100, stage = 4 /* Final Destination */){
   const cfg = buildMatchConfig(count, defaultRoster, [-120, 0], [120, 0]);
   applyMatchConfig(cfg);
+  hundredManMode = true;
+  window.__cam = null; // reset camera so it snaps to the opening swarm
   setStageSelect(stage);
   startGame();
 }
@@ -1114,6 +1126,30 @@ export function gameTick (oldInputBuffers){
         starting = false;
       }
     }
+    if (hundredManMode && !starting) {
+      // FFA resolution: mark out-of-stock fighters eliminated (the existing
+      // stock mechanism already routes them to SLEEP), and end the match when
+      // one survivor remains.
+      const ffa = resolveFFA(player.slice(0, ports).map(p => ({ stocks: p.stocks, alive: !p.dead })));
+      ffa.newlyEliminated.forEach(idx => { player[idx].dead = true; }); // render skips dead fighters
+      if (ffa.over) {
+        if (ffa.winner !== null) console.log("100-man winner: port " + ffa.winner);
+        hundredManMode = false;
+        window.__cam = null;
+        endGame(input);
+      }
+    }
+    if (hundredManMode) {
+      // Dynamic-zoom camera framing the living swarm. Screen dims match the
+      // renderer's 1200x750 design space (not 1920x1080) so framing lines up
+      // with activeStage.scale/offset; maxScale caps at the stage default 4.5.
+      const livePos = [];
+      for (let i = 0; i < ports; i++) if (!player[i].dead) livePos.push(player[i].phys.pos);
+      if (livePos.length > 0) {
+        const target = computeCamera(livePos, { screenW: 1200, screenH: 750, margin: 1.3, minScale: 1, maxScale: 4.5 });
+        window.__cam = smoothCamera(window.__cam || target, target, 0.15);
+      }
+    }
     if (frameByFrame) {
       frameByFrameRender = true;
       wasFrameByFrame = true;
@@ -1363,7 +1399,12 @@ export function startGame (){
       renderPlayer(n);
       player[n].inCSS = false;
     }
-    if (versusMode) {
+    if (hundredManMode) {
+      // FFA: a single life each, but stocks are allowed to deplete to 0
+      // (the versus clamp in physics is skipped) so fighters stay eliminated.
+      player[n].stocks = 1;
+      player[n].dead = false;
+    } else if (versusMode) {
       player[n].stocks = 1;
     }
   }
