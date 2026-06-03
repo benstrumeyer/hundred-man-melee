@@ -117,6 +117,15 @@ export const aiPlayer4 = [ new inputData ( )
 
 export const aiInputBank = [aiPlayer1,aiPlayer2,aiPlayer3,aiPlayer4];
 
+// Ensure aiInputBank has an 8-deep input-history bank for every fighter index,
+// so N-fighter (N>4) matches don't read inputs off an undefined CPU slot.
+export function resizeAiInputBank(count) {
+  for (let i = aiInputBank.length; i < count; i++) {
+    aiInputBank[i] = [ new inputData(), new inputData(), new inputData(), new inputData()
+                     , new inputData(), new inputData(), new inputData(), new inputData() ];
+  }
+}
+
 // should be able to move out the "frameByFrame" aspect of the following function
 // it is only used to make z button mean "left trigger value = 0.35" + "A = true".
 export function pollInputs ( gameMode : number, frameByFrame : bool, controllerInfo : "keyboard" | GamepadInfo

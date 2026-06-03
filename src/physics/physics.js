@@ -745,6 +745,14 @@ const ecbSquashData: [ SquashDatum
   , nullSquashDatum
   , nullSquashDatum];
 
+// Ensure ecbSquashData has a (neutral) entry for every fighter index, so
+// N-fighter matches don't read `.factor` off an undefined slot.
+export function resizeEcbSquashData(count) {
+  for (let i = ecbSquashData.length; i < count; i++) {
+    ecbSquashData[i] = nullSquashDatum;
+  }
+}
+
 
 function findAndResolveCollisions(i: number, input: any
     , oldBackward: bool
