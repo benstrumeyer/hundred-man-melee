@@ -21,11 +21,20 @@ export function buildMatchConfig(count, roster, leftPos, rightPos) {
   const startingFace = [];
   const playerType = [];
   const cpuDifficulty = [];
+  // Lay fighters out in a GRID within the [leftPos..rightPos] x-range, stacking
+  // rows upward from leftPos[1] so they rain down onto the stage spread out
+  // (a single packed line at one height makes them murder-pile / fall off).
+  const minX = leftPos[0];
+  const maxX = rightPos[0];
+  const baseY = leftPos[1];
+  const cols = Math.max(1, Math.ceil(Math.sqrt(count)));
+  const rowGap = 22; // world units between stacked rows
   for (let i = 0; i < count; i++) {
     characterSelections.push(roster[i % roster.length]);
-    const t = count === 1 ? 0.5 : i / (count - 1);
-    const x = leftPos[0] + (rightPos[0] - leftPos[0]) * t;
-    const y = leftPos[1] + (rightPos[1] - leftPos[1]) * t;
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = cols === 1 ? (minX + maxX) / 2 : minX + (maxX - minX) * (col / (cols - 1));
+    const y = baseY + row * rowGap;
     startingPoint.push([x, y]);
     startingFace.push(x < 0 ? 1 : -1);
     playerType.push(i === 0 ? 0 : 1);

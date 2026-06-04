@@ -226,7 +226,7 @@ export function applyMatchConfig (cfg){
 
 // Spawn an N-fighter FFA: port 0 human + (count-1) CPUs on the given stage.
 export function startHundredManMatch (count = 100, stage = 4 /* Final Destination */){
-  const cfg = buildMatchConfig(count, defaultRoster, [-120, 0], [120, 0]);
+  const cfg = buildMatchConfig(count, defaultRoster, [-260, 12], [260, 12]);
   applyMatchConfig(cfg);
   hundredManMode = true;
   window.__cam = null; // reset camera so it snaps to the opening swarm
@@ -942,6 +942,7 @@ export function renderToMain (){
 const AI_THROTTLE = 3;
 const AI_THROTTLE_MIN_FIGHTERS = 16;
 let simTick = 0;
+let savedStageTransform = null; // 100-man: stage scale/offset snapshot to restore when the camera override ends
 
 export function update (i,inputBuffers){
   if (!starting){
@@ -1165,18 +1166,29 @@ export function gameTick (oldInputBuffers){
         if (ffa.winner !== null) console.log("100-man winner: port " + ffa.winner);
         hundredManMode = false;
         window.__cam = null;
+        if (savedStageTransform) {
+          const as = getActiveStage();
+          as.scale = savedStageTransform.scale;
+          as.offset = savedStageTransform.offset.slice();
+          savedStageTransform = null;
+        }
         endGame(input);
       }
     }
     if (hundredManMode) {
-      // Dynamic-zoom camera framing the living swarm. Screen dims match the
-      // renderer's 1200x750 design space (not 1920x1080) so framing lines up
-      // with activeStage.scale/offset; maxScale caps at the stage default 4.5.
+      // Dynamic-zoom camera framing the living swarm, driving the GLOBAL stage
+      // transform so the ground/platforms zoom WITH the fighters (otherwise the
+      // fighters render under the camera while the stage stays at default scale
+      // and they appear to walk on air).
       const livePos = [];
       for (let i = 0; i < ports; i++) if (!player[i].dead) livePos.push(player[i].phys.pos);
       if (livePos.length > 0) {
-        const target = computeCamera(livePos, { screenW: 1200, screenH: 750, margin: 1.3, minScale: 1, maxScale: 4.5 });
-        window.__cam = smoothCamera(window.__cam || target, target, 0.15);
+        const as = getActiveStage();
+        if (!savedStageTransform) savedStageTransform = { scale: as.scale, offset: as.offset.slice() };
+        const target = computeCamera(livePos, { screenW: 1200, screenH: 750, margin: 1.2, minScale: 1, maxScale: 4.5 });
+        window.__cam = smoothCamera(window.__cam || target, target, 0.12);
+        as.scale = window.__cam.scale;
+        as.offset = [window.__cam.offsetX, window.__cam.offsetY];
       }
     }
     // Sim-ms-per-tick for the perf HUD (Phase-2 server-feasibility budget ~16ms).
