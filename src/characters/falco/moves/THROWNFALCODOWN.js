@@ -23,7 +23,7 @@ export default {
     player[p].timer++;
     if (!this.interrupt(p,input)){
       if (player[p].timer > 0){
-        player[p].phys.pos = new Vec2D(player[player[p].phys.grabbedBy].phys.pos.x+this.offset[player[p].timer-1][0]*player[p].phys.face*-1,player[player[p].phys.grabbedBy].phys.pos.y+this.offset[player[p].timer-1][1]);
+        player[p].phys.pos = new Vec2D(player[player[p].phys.grabbedBy].phys.pos.x+this.offset[Math.min(player[p].timer-1,this.offset.length-1)][0]*player[p].phys.face*-1,player[player[p].phys.grabbedBy].phys.pos.y+this.offset[Math.min(player[p].timer-1,this.offset.length-1)][1]);
       }
     }
   },

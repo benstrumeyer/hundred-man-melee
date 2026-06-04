@@ -225,22 +225,25 @@ export function applyMatchConfig (cfg){
 }
 
 // Spawn an N-fighter FFA: port 0 human + (count-1) CPUs on the given stage.
-export function startHundredManMatch (count = 100, stage = 4 /* Final Destination */){
-  // The canvas contexts (bg1, fg1, ...) are created by start() AFTER the load
-  // screen. If this is called before that (e.g. right after a page load or an
-  // HMR reload), changeGamemode() crashes on a null context ("fillStyle on 0").
-  // Wait until the game is ready, then start.
-  if (!bg1 || typeof bg1 !== "object") {
-    console.log("[100-man] game still initializing -- starting shortly...");
-    setTimeout(function () { startHundredManMatch(count, stage); }, 250);
-    return;
-  }
+export function startHundredManMatch (count = 100, stage = 4 /* Final Destination */, _retries = 0){
   const cfg = buildMatchConfig(count, defaultRoster, [-260, 12], [260, 12]);
   applyMatchConfig(cfg);
   hundredManMode = true;
   window.__cam = null; // reset camera so it snaps to the opening swarm
   setStageSelect(stage);
-  startGame();
+  try {
+    startGame();
+  } catch (e) {
+    // The canvas contexts (bg1/fg1) are created by start() after the load
+    // screen; if we got here before that, startGame() throws ("fillStyle on
+    // 0"). Roll back and retry a bounded number of times until ready.
+    hundredManMode = false;
+    if (_retries < 12) {
+      setTimeout(function () { startHundredManMatch(count, stage, _retries + 1); }, 300);
+    } else {
+      console.warn("[100-man] couldn't start — wait for the title screen to finish loading, then try again. (" + e.message + ")");
+    }
+  }
 }
 
 // Temporary dev trigger: call startHundredManMatch(N) from the browser console.

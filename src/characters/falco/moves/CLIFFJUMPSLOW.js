@@ -22,7 +22,7 @@ export default {
       const x = activeStage[l[0]][l[1]][l[2]].x;
       const y = activeStage[l[0]][l[1]][l[2]].y;
       if (player[p].timer < 20){
-        player[p].phys.pos = new Vec2D(x+(this.offset[player[p].timer-1][0]+68.4)*player[p].phys.face,y+this.offset[player[p].timer-1][1]);
+        player[p].phys.pos = new Vec2D(x+(this.offset[Math.min(player[p].timer-1,this.offset.length-1)][0]+68.4)*player[p].phys.face,y+this.offset[Math.min(player[p].timer-1,this.offset.length-1)][1]);
       }
       if (player[p].timer === 20){
         player[p].phys.cVel = new Vec2D(1*player[p].phys.face,3.9);

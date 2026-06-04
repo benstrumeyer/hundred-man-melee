@@ -873,7 +873,23 @@ function falconAI(i) {
 
 export function runAI (i){
   generalAI(i); //calls general AI
-  //console.log(player[i].difficulty);
+  // Anti-idle nudge: on the big 100-man stage, isolated CPUs with no enemy in
+  // generalAI's short engage range just stand in WAIT. If generalAI left this
+  // grounded fighter with no horizontal input and a living enemy exists, walk
+  // toward the nearest one so nobody loafs (and the match can reach a winner).
+  const p = player[i];
+  if (p.phys.grounded && Math.abs(aiInputBank[i][0].lsX) < 0.1) {
+    const idleStates = ["WAIT", "OTTOTTOWAIT", "WALK", "WALKF", "SQUAT", "LANDING"];
+    if (idleStates.indexOf(p.actionState) !== -1) {
+      const n = NearestEnemy(p, i);
+      if (n !== i && player[n] && !player[n].dead && player[n].actionState !== "SLEEP") {
+        const dx = player[n].phys.pos.x - p.phys.pos.x;
+        if (Math.abs(dx) > 8) {
+          aiInputBank[i][0].lsX = Math.sign(dx) * 0.7; // walk toward the nearest enemy
+        }
+      }
+    }
+  }
   //These are the player Inputs
 }
 

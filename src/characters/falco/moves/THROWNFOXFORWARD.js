@@ -23,7 +23,11 @@ export default {
     player[p].timer++;
     if (!this.interrupt(p,input)){
       if (player[p].timer > 0){
-        player[p].phys.pos = new Vec2D(player[player[p].phys.grabbedBy].phys.pos.x+this.offset[player[p].timer-1][0]*player[p].phys.face,player[player[p].phys.grabbedBy].phys.pos.y+this.offset[player[p].timer-1][1]);
+        var thrower = player[player[p].phys.grabbedBy];
+        if (!thrower) { return; } // grabber gone (e.g. KO'd mid-throw): don't crash
+        // clamp to the last frame so timer overrun doesn't index past offset[] (was a hard crash that froze the whole game)
+        var idx = Math.min(player[p].timer - 1, this.offset.length - 1);
+        player[p].phys.pos = new Vec2D(thrower.phys.pos.x+this.offset[idx][0]*player[p].phys.face,thrower.phys.pos.y+this.offset[idx][1]);
       }
     }
   },
