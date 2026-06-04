@@ -11,15 +11,17 @@ export default {
   name : "fdest",
   box: [],
   polygon : [ [ new Vec2D(-300, 0), new Vec2D(300, 0), new Vec2D(300, -40), new Vec2D(-300, -40) ]],
+  // Battlefield-height tiers (~27 units apart, like real Battlefield's 27.2/54.4)
+  // so fighters can single-jump ground -> tier1 -> tier2 -> ... and CPUs reach them.
   platform: [
-    // row 1 (low)
-    [new Vec2D(-270, 45), new Vec2D(-210, 45)], [new Vec2D(-160, 45), new Vec2D(-100, 45)], [new Vec2D(-30, 45), new Vec2D(30, 45)], [new Vec2D(100, 45), new Vec2D(160, 45)], [new Vec2D(210, 45), new Vec2D(270, 45)],
-    // row 2 (mid, offset)
-    [new Vec2D(-220, 90), new Vec2D(-160, 90)], [new Vec2D(-80, 90), new Vec2D(-20, 90)], [new Vec2D(20, 90), new Vec2D(80, 90)], [new Vec2D(160, 90), new Vec2D(220, 90)],
-    // row 3 (high)
-    [new Vec2D(-150, 140), new Vec2D(-90, 140)], [new Vec2D(-30, 140), new Vec2D(30, 140)], [new Vec2D(90, 140), new Vec2D(150, 140)],
-    // row 4 (top)
-    [new Vec2D(-30, 190), new Vec2D(30, 190)]
+    // tier 1 (y=27, one jump from the ground)
+    [new Vec2D(-270, 27), new Vec2D(-210, 27)], [new Vec2D(-150, 27), new Vec2D(-90, 27)], [new Vec2D(-30, 27), new Vec2D(30, 27)], [new Vec2D(90, 27), new Vec2D(150, 27)], [new Vec2D(210, 27), new Vec2D(270, 27)],
+    // tier 2 (y=54, a jump from tier 1)
+    [new Vec2D(-230, 54), new Vec2D(-170, 54)], [new Vec2D(-70, 54), new Vec2D(-10, 54)], [new Vec2D(10, 54), new Vec2D(70, 54)], [new Vec2D(170, 54), new Vec2D(230, 54)],
+    // tier 3 (y=81)
+    [new Vec2D(-130, 81), new Vec2D(-70, 81)], [new Vec2D(-30, 81), new Vec2D(30, 81)], [new Vec2D(70, 81), new Vec2D(130, 81)],
+    // tier 4 (y=108)
+    [new Vec2D(-30, 108), new Vec2D(30, 108)]
   ],
   ground: [[new Vec2D(-300, 0), new Vec2D(300, 0)]],
   ceiling: [[new Vec2D(-300, -40), new Vec2D(300, -40)]],
@@ -32,8 +34,8 @@ export default {
   blastzone: new Box2D([-450, -200], [450, 300]),
   ledge: [["ground", 0, 0], ["ground", 0, 1]],
   ledgePos: [new Vec2D(-300, 0), new Vec2D(300, 0)],
-  scale: 2.0,
-  offset: [600, 400],
+  scale: 1.5,
+  offset: [600, 360],
   movingPlats: [],
   movingPlatforms: function () {
   }

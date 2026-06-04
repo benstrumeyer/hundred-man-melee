@@ -38,7 +38,7 @@ export function buildMatchConfig(count, roster, leftPos, rightPos) {
     startingPoint.push([x, y]);
     startingFace.push(x < 0 ? 1 : -1);
     playerType.push(i === 0 ? 0 : 1);
-    cpuDifficulty.push(3);
+    cpuDifficulty.push(4); // MeleeLight AI tops out at 4 (enables SDI + max action rate)
   }
   return { characterSelections, startingPoint, startingFace, playerType, cpuDifficulty };
 }

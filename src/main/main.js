@@ -1175,22 +1175,11 @@ export function gameTick (oldInputBuffers){
         endGame(input);
       }
     }
-    if (hundredManMode) {
-      // Dynamic-zoom camera framing the living swarm, driving the GLOBAL stage
-      // transform so the ground/platforms zoom WITH the fighters (otherwise the
-      // fighters render under the camera while the stage stays at default scale
-      // and they appear to walk on air).
-      const livePos = [];
-      for (let i = 0; i < ports; i++) if (!player[i].dead) livePos.push(player[i].phys.pos);
-      if (livePos.length > 0) {
-        const as = getActiveStage();
-        if (!savedStageTransform) savedStageTransform = { scale: as.scale, offset: as.offset.slice() };
-        const target = computeCamera(livePos, { screenW: 1200, screenH: 750, margin: 1.2, minScale: 1, maxScale: 4.5 });
-        window.__cam = smoothCamera(window.__cam || target, target, 0.12);
-        as.scale = window.__cam.scale;
-        as.offset = [window.__cam.offsetX, window.__cam.offsetY];
-      }
-    }
+    // 100-man uses a FIXED full-arena view: the wide stage's own scale/offset
+    // frame the whole arena. A per-frame dynamic-zoom camera proved jittery
+    // (the platforms appeared to swim) and could feed a NaN fighter position
+    // into the global transform, freezing the entire render. window.__cam stays
+    // null so the renderer uses activeStage.scale/offset directly.
     // Sim-ms-per-tick for the perf HUD (Phase-2 server-feasibility budget ~16ms).
     window.__simMs = performance.now() - simStart;
     if (frameByFrame) {
