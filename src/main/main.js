@@ -226,6 +226,15 @@ export function applyMatchConfig (cfg){
 
 // Spawn an N-fighter FFA: port 0 human + (count-1) CPUs on the given stage.
 export function startHundredManMatch (count = 100, stage = 4 /* Final Destination */){
+  // The canvas contexts (bg1, fg1, ...) are created by start() AFTER the load
+  // screen. If this is called before that (e.g. right after a page load or an
+  // HMR reload), changeGamemode() crashes on a null context ("fillStyle on 0").
+  // Wait until the game is ready, then start.
+  if (!bg1 || typeof bg1 !== "object") {
+    console.log("[100-man] game still initializing -- starting shortly...");
+    setTimeout(function () { startHundredManMatch(count, stage); }, 250);
+    return;
+  }
   const cfg = buildMatchConfig(count, defaultRoster, [-260, 12], [260, 12]);
   applyMatchConfig(cfg);
   hundredManMode = true;
